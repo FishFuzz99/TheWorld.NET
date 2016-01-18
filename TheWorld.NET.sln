@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{70A3E28B-79CA-486D-B0CA-D7CE964D8438}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{39DC4DED-5560-427A-85FD-F5A8A059A192}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+		NuGet.Config = NuGet.Config
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "TheWorld.NET", "src\TheWorld.NET\TheWorld.NET.xproj", "{AA233652-F578-420A-AF0B-B6BDB9946F9C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA233652-F578-420A-AF0B-B6BDB9946F9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA233652-F578-420A-AF0B-B6BDB9946F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA233652-F578-420A-AF0B-B6BDB9946F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA233652-F578-420A-AF0B-B6BDB9946F9C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AA233652-F578-420A-AF0B-B6BDB9946F9C} = {70A3E28B-79CA-486D-B0CA-D7CE964D8438}
+	EndGlobalSection
+EndGlobal
