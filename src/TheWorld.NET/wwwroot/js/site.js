@@ -3,14 +3,17 @@
     
     
     var $sidebarAndWrapper = $("#sidebar,#wrapper"); // wrapped set this AND that //$naming shows its a jQuery variable
+    var $icon = $("#sidebarToggle i.fa") 
 
     $("#sidebarToggle").on("click", function () {
         $sidebarAndWrapper.toggleClass("hide-sidebar");
         if ($sidebarAndWrapper.hasClass("hide-sidebar")) {
-            $(this).text("Hide Sidebar");
+            $icon.removeClass("fa-angle-left");
+            $icon.addClass("fa-angle-right");
         }
         else {
-            $(this).text("Show Sidebar");
+            $icon.addClass("fa-angle-left");
+            $icon.removeClass("fa-angle-right");
         }
     })
     

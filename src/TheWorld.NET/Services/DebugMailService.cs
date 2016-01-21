@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using TheWorld.Services;
+using TheWorld.NET.Services;
 
-namespace TheWorld
+namespace TheWorld.NET
 {
     public class DebugMailService : IMailService
     {

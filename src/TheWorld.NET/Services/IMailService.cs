@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TheWorld.Services
+namespace TheWorld.NET.Services
 {
     public interface IMailService
     {

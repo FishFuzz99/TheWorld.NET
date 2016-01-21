@@ -6,8 +6,11 @@ using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Configuration;
 using Microsoft.Framework.DependencyInjection;
-using TheWorld.Services;
 using Microsoft.Dnx.Runtime;
+using TheWorld.NET.Services;
+using TheWorld.NET.Models;
+using Microsoft.Framework.Logging;
+using Newtonsoft.Json.Serialization;
 
 namespace TheWorld.NET
 {
@@ -28,7 +31,21 @@ namespace TheWorld.NET
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            
+            services.AddMvc().AddJsonOptions(opt =>
+            {
+                opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            });
+
+            services.AddLogging();
+
+            services.AddEntityFramework()
+                .AddSqlServer()
+                .AddDbContext<WorldContext>();
+
+            //services.AddScoped<WorldContextSeedData>(); this would work // also, AddSingleton AddInstance
+            services.AddTransient<WorldContextSeedData>();
+            services.AddScoped<IWorldRepository, WorldRepository>();
 
 #if DEBUG
             services.AddScoped<IMailService, DebugMailService>();
@@ -39,8 +56,10 @@ namespace TheWorld.NET
 
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, WorldContextSeedData seeder, ILoggerFactory loggerFactory)
         { // order matters
+            loggerFactory.AddDebug(LogLevel.Warning);
+
             app.UseStaticFiles();
             app.UseMvc(config =>
             {
@@ -50,6 +69,8 @@ namespace TheWorld.NET
                     defaults: new { controller = "App", Action = "index" }
                     );
             });
+
+            seeder.EnsureSeedData();
         }
 
          //public static void Main(string[] args) => WebApplication.Run<Startup>(args);
