@@ -1,26 +1,31 @@
 ﻿using AutoMapper;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using TheWorld.NET.Models;
+using TheWorld.NET.Services;
 using TheWorld.NET.ViewModels;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Authorization;
 
 namespace TheWorld.NET.Controllers.Api
 {
+    [Authorize]
     [Route("api/trips/{tripName}/stops")]
     public class StopController : Controller
     {
+        private CoordService _coordService;
         private ILogger<StopController> _logger;
         private IWorldRepository _repository;
 
-        public StopController(IWorldRepository repository, ILogger<StopController> logger)
+        public StopController(IWorldRepository repository, ILogger<StopController> logger, CoordService coordService)
         {
             _repository = repository;
-            _logger = logger;  
+            _logger = logger;
+            _coordService = coordService;
         }
 
         [HttpGet("")]
@@ -28,8 +33,9 @@ namespace TheWorld.NET.Controllers.Api
         {
             try
             {
-                
-                var results = _repository.GetTripByName(tripName);
+
+                tripName = WebUtility.UrlDecode(tripName);
+                var results = _repository.GetTripByName(tripName, User.Identity.Name);
                 if (results == null)
                 {
                         return Json(null);
@@ -46,18 +52,31 @@ namespace TheWorld.NET.Controllers.Api
             }
         }
 
-        public JsonResult Post(string tripName, [FromBody]StopViewModel vm)
+        public async Task<JsonResult> Post(string tripName, [FromBody]StopViewModel vm)
         {
             try
             {
+                tripName = WebUtility.UrlDecode(tripName);
                 if (ModelState.IsValid)
                 {
                     // Map to the entity
                     var newStop = Mapper.Map<Stop>(vm);
                     // Looking up Geocoordinates
 
+                    var coordResult = await _coordService.Lookup(newStop.Name);
+
+                    if (!coordResult.Success)
+                    {
+                        Response.StatusCode = (int)HttpStatusCode.Created;
+                        return Json(Mapper.Map<StopViewModel>(newStop));
+                    }
+
+                    newStop.Longitude = coordResult.Longitude;
+                    newStop.Latitude = coordResult.Latitude;
+
+
                     // Save to the Database
-                    _repository.AddStop(tripName, newStop);
+                    _repository.AddStop(tripName, User.Identity.Name, newStop);
 
                     if (_repository.SaveAll())
                     {

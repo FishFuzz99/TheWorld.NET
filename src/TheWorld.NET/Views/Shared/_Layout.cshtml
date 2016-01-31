@@ -19,12 +19,20 @@
 <body>
     <div>
         <div id="sidebar">
-            <img src="~/img/Abraham_Lincoln_November_1863.jpg" alt"headshot" class="headshot" />
-            <span id="username">Test User</span>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <img src="~/img/Abraham_Lincoln_November_1863.jpg" alt"headshot" class="headshot" />
+                <span id="username">@User.Identity.Name</span>
+            }
             <ul class="nav">
                 <li class="active"><a asp-controller="App" asp-action="Index">Home</a></li>
                 <li><a asp-controller="App" asp-action="About">About</a></li>
                 <li><a asp-controller="App" asp-action="Contact">Contact</a></li>
+                @if (User.Identity.IsAuthenticated)
+                { 
+                    <li><a asp-controller="App" asp-action="Trips">About</a></li>
+                    <li><a asp-controller="Auth" asp-action="Logout">Logout</a></li>
+                }
             </ul>
         </div>
 
@@ -54,7 +62,7 @@
                 </div>
             </nav>
             <div id="main" class="container-fluid">
-                
+
                 <div>
                     @RenderBody()
                 </div>
@@ -75,6 +83,7 @@
     @RenderSection("Scripts", false)
 
 </body>
+
 
 
 </html>

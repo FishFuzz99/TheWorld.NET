@@ -4,15 +4,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Configuration;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Dnx.Runtime;
 using TheWorld.NET.Services;
 using TheWorld.NET.Models;
-using Microsoft.Framework.Logging;
 using Newtonsoft.Json.Serialization;
 using AutoMapper;
 using TheWorld.NET.ViewModels;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Authentication.Cookies;
+using System.Net;
+using Microsoft.AspNet.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace TheWorld.NET
 {
@@ -34,10 +40,38 @@ namespace TheWorld.NET
         public void ConfigureServices(IServiceCollection services)
         {
             
-            services.AddMvc().AddJsonOptions(opt =>
+            services.AddMvc(config =>
+            {
+#if !DEBUG
+                config.Filters.Add(new RequireHttpsAttribute());
+#endif
+            })  
+            .AddJsonOptions(opt =>
             {
                 opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
+
+            services.AddIdentity<WorldUser, IdentityRole>(config =>
+            {
+                config.User.RequireUniqueEmail = true;
+                config.Password.RequiredLength = 8;
+                config.Cookies.ApplicationCookie.LoginPath = "/Auth/Login";
+                config.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = ctx =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == (int)HttpStatusCode.OK)
+                        {
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        }
+                        
+                        ctx.Response.Redirect(ctx.RedirectUri);
+
+                        return Task.FromResult(0);
+                    }
+                };
+            })
+            .AddEntityFrameworkStores<WorldContext>();
 
             services.AddLogging();
 
@@ -46,6 +80,7 @@ namespace TheWorld.NET
                 .AddDbContext<WorldContext>();
 
             //services.AddScoped<WorldContextSeedData>(); this would work // also, AddSingleton AddInstance
+            services.AddScoped<CoordService>();
             services.AddTransient<WorldContextSeedData>();
             services.AddScoped<IWorldRepository, WorldRepository>();
 
@@ -58,11 +93,14 @@ namespace TheWorld.NET
 
         }
 
-        public void Configure(IApplicationBuilder app, WorldContextSeedData seeder, ILoggerFactory loggerFactory)
-        { // order matters
+        public async void Configure(IApplicationBuilder app, WorldContextSeedData seeder, ILoggerFactory loggerFactory)
+        { 
+            // order matters
             loggerFactory.AddDebug(LogLevel.Warning);
 
             app.UseStaticFiles();
+
+            app.UseIdentity();
 
             Mapper.Initialize(config =>
             {
@@ -79,9 +117,9 @@ namespace TheWorld.NET
                     );
             });
 
-            seeder.EnsureSeedData();
+            await seeder.EnsureSeedDataAsync();
         }
 
-         //public static void Main(string[] args) => WebApplication.Run<Startup>(args);
+         public static void Main(string[] args) => WebApplication.Run<Startup>(args);
     }
 }
